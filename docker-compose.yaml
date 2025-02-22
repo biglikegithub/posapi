@@ -1,0 +1,47 @@
+services:
+  db-postgres:
+    image: postgres:17.4-alpine3.21
+    container_name: db-posapi
+    restart: always
+    volumes:
+      - /data/postgres/posapidb:/var/lib/postgresql/data/
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - 5432:5432
+    environment:
+      - TZ=Asia/Ulaanbaatar
+      - POSTGRES_TIMEZONE=Asia/Ulaanbaatar
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password@123
+      - POSTGRES_DB=posapidb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    networks:
+      - posapi-net
+  
+  posapi:
+    image: itcgov/posapi:latest 
+    container_name: posapi
+    restart: always
+    depends_on:
+      - db-postgres
+    volumes:
+      - ./posapi.ini:/opt/posapi/posapi.ini   
+      - /data/posapi/workingDir:/opt/posapi/workDir
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro  
+    ports:
+      - 7080:7080
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    networks:
+      - posapi-net
+
+networks:
+  posapi-net:
+    driver: bridge
